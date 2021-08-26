@@ -2,7 +2,7 @@ import itertools
 import threading
 import time
 import sys
-
+import stdiomask
 import getpass
 import smtpd
 import smtplib, ssl
@@ -43,10 +43,13 @@ done = True
 
 
 #Email setup
+
+port=465
 email=input('Enter your email address: ')
-password=getpass.getpass(prompt="Password: ", stream=None)
-server=smtplib.SMTP_SSL('smtp.gmail.com', 465)
-server.login(email, password)
+password=stdiomask.getpass(prompt="Password: ", mask='*')
+context = ssl.create_default_context()
+with smtplib.SMTP_SSL('smtp.gmail.com', port)as server:
+    server.login(email, password)
 
 #Logger
 full_log=''
